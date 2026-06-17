@@ -3,13 +3,12 @@ defmodule PlexExporter.Metrics.Sessions do
   Metrics about sessions
   """
 
-  alias PlexExporter.Config
   alias PlexExporter.Plex.Client, as: Plex
 
   @doc """
   Count number of sessions, broken down by type of session
   """
-  @spec count(Config.t()) ::
+  @spec count() ::
           {:ok,
            %{
              direct_play: non_neg_integer(),
@@ -17,8 +16,8 @@ defmodule PlexExporter.Metrics.Sessions do
              transcode: non_neg_integer()
            }}
           | :error
-  def count(config) do
-    case Plex.list_sessions(config) do
+  def count do
+    case Plex.get("/status/sessions") do
       {:ok, response} ->
         streams = response.body["MediaContainer"]["Metadata"] || []
 

@@ -3,73 +3,27 @@ defmodule PlexExporter.Plex.Client do
   Client for the Plex API
   """
 
-  alias PlexExporter.Config
-
-  @typedoc """
-  Extra parameters to pass to the request
-  """
-  @type params :: map()
-
-  @typedoc """
-  Options to pass to the request
-  """
-  @type opts :: [offset: integer(), limit: integer(), plug: term()]
+  @type opts :: [params: map(), offset: non_neg_integer(), limit: non_neg_integer(), plug: term()]
 
   @doc """
-  Displays information about the server
+  Make a GET request to the given Plex URL
   """
-  @spec info(Config.t(), params(), opts()) :: {:ok, Req.Response.t()} | {:error, Exception.t()}
-  def info(config, params \\ %{}, opts \\ []) do
-    config
-    |> base_request(opts)
-    |> Req.get(url: "/info", params: params)
+  @spec get(String.t(), opts()) :: {:ok, Req.Response.t()} | {:error, Exception.t()}
+  def get(path, opts \\ []) do
+    {params, opts} = Keyword.pop(opts, :params, %{})
+
+    base_request(opts)
+    |> Req.get(url: path, params: params)
   end
 
-  @doc """
-  List currently playing sessions
-  """
-  @spec list_sessions(Config.t(), params(), opts()) ::
-          {:ok, Req.Response.t()} | {:error, Exception.t()}
-  def list_sessions(config, params \\ %{}, opts \\ []) do
-    config
-    |> base_request(opts)
-    |> Req.get(url: "/status/sessions", params: params)
-  end
+  @spec base_request(opts()) :: Req.Request.t()
+  defp base_request(opts) do
+    %PlexExporter.Config{url: url, token: token} = PlexExporter.config()
 
-  @doc """
-  List library sections
-  """
-  @spec list_library_sections(Config.t(), params(), opts()) ::
-          {:ok, Req.Response.t()} | {:error, Exception.t()}
-  def list_library_sections(config, params \\ %{}, opts \\ []) do
-    config
-    |> base_request(opts)
-    |> Req.get(url: "/library/sections", params: params)
-  end
-
-  @doc """
-  List items for a specific section
-  """
-  @spec list_library_section_items(Config.t(), String.t(), params(), opts()) ::
-          {:ok, Req.Response.t()} | {:error, Exception.t()}
-  def list_library_section_items(config, section_id, params \\ %{}, opts \\ []) do
-    base_request(config, opts)
-    |> Req.get(
-      url: "/library/sections/:section_id/all",
-      path_params: [section_id: section_id],
-      params: params
-    )
-  end
-
-  @spec base_request(Config.t(), opts()) :: Req.Request.t()
-  defp base_request(%PlexExporter.Config{url: url, token: token}, opts) do
-    req =
-      Req.new(base_url: url)
-      |> Req.Request.put_new_header("Accept", "application/json")
-      |> Req.Request.put_new_header("X-Plex-Token", token)
-      |> apply_options(opts)
-
-    req
+    Req.new(base_url: url)
+    |> Req.Request.put_new_header("Accept", "application/json")
+    |> Req.Request.put_new_header("X-Plex-Token", token)
+    |> apply_options(opts)
   end
 
   @spec apply_options(Req.Request.t(), opts()) :: Req.Request.t()
