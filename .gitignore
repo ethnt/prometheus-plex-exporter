@@ -36,3 +36,6 @@ plex_exporter-*.tar
 
 # Burrito
 /burrito_out/
+
+# Nix result
+result

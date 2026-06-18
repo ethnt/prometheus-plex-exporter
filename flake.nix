@@ -17,6 +17,8 @@
       imports = with inputs; [ treefmt.flakeModule ];
 
       perSystem = { config, lib, pkgs, ... }: {
+        packages.default = pkgs.callPackage ./default.nix { };
+
         devShells.default = pkgs.mkShell {
           packages = with pkgs;
             [ elixir_1_19 xz zig_0_15 ] ++ [ config.treefmt.build.wrapper ]
