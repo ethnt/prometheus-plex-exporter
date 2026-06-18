@@ -10,8 +10,7 @@ defmodule PlexExporter.Worker do
   def start_link(_), do: GenServer.start_link(PlexExporter.Worker, %{})
 
   def init(state) do
-    PlexExporter.Metrics.update_metrics!()
-    schedule_poll()
+    send(self(), :poll)
     {:ok, state}
   end
 
