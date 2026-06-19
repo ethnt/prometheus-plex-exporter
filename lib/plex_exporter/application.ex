@@ -3,8 +3,23 @@ defmodule PlexExporter.Application do
 
   @impl Application
   def start(_type, _args) do
-    children = []
+    PlexExporter.Plug.setup()
+    PlexExporter.Metrics.init()
 
-    Supervisor.start_link(children, strategy: :one_for_one)
+    Supervisor.start_link(children(), strategy: :one_for_one)
+  end
+
+  defp children do
+    case Mix.env() do
+      :test ->
+        []
+
+      _ ->
+        [
+          PlexExporter.Worker,
+          {Bandit,
+           plug: PlexExporter.Router, port: Application.get_env(:plex_exporter, :port, 9000)}
+        ]
+    end
   end
 end

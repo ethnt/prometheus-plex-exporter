@@ -48,5 +48,7 @@ defmodule PlexExporter.Collectors.Sessions do
 
   defp stream_type(%{"TranscodeSession" => %{"videoDecision" => "transcode"}}), do: :transcode
 
+  defp stream_type(%{"TranscodeSession" => %{"audioDecision" => "transcode"}}), do: :transcode
+
   defp stream_type(_), do: :unknown
 end

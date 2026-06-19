@@ -50,7 +50,7 @@ defmodule PlexExporter.Collectors.SessionsTest do
       assert {:ok, %{direct_play: 0, direct_stream: 1, transcode: 0}} = Sessions.count()
     end
 
-    test "counts transcode sessions" do
+    test "counts video transcode sessions" do
       PlexExporter.Plex.Status
       |> expect(:sessions, fn ->
         {:ok,
@@ -59,6 +59,24 @@ defmodule PlexExporter.Collectors.SessionsTest do
              "MediaContainer" => %{
                "Metadata" => [
                  %{"TranscodeSession" => %{"videoDecision" => "transcode"}}
+               ]
+             }
+           }
+         }}
+      end)
+
+      assert {:ok, %{direct_play: 0, direct_stream: 0, transcode: 1}} = Sessions.count()
+    end
+
+    test "counts audio transcode sessions" do
+      PlexExporter.Plex.Status
+      |> expect(:sessions, fn ->
+        {:ok,
+         %Req.Response{
+           body: %{
+             "MediaContainer" => %{
+               "Metadata" => [
+                 %{"TranscodeSession" => %{"audioDecision" => "transcode"}}
                ]
              }
            }
