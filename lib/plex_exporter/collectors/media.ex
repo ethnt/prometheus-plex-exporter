@@ -5,7 +5,7 @@ defmodule PlexExporter.Collectors.Media do
 
   alias PlexExporter.Plex
 
-  @spec count :: {:ok, %{String.t() => non_neg_integer() | nil}} | :error
+  @spec count :: {:ok, [%{}]} | :error
   def count do
     case Plex.Library.sections() do
       {:ok, response} ->
@@ -14,7 +14,6 @@ defmodule PlexExporter.Collectors.Media do
         values =
           sections
           |> Enum.flat_map(&section_value/1)
-          |> Map.new()
 
         {:ok, values}
 
@@ -23,20 +22,24 @@ defmodule PlexExporter.Collectors.Media do
     end
   end
 
-  @spec section_value(map()) :: list({String.t(), non_neg_integer()})
+  @spec section_value(map()) :: list(map())
   defp section_value(%{"title" => title, "key" => key, "type" => "show"}) do
     {:ok, count} = section_count(key)
     {:ok, episode_count} = section_count(key, %{"type" => "4"})
-    [{title, count}, {"#{title} - Episodes", episode_count}]
+
+    [
+      %{title: title, type: "show", count: count},
+      %{title: "#{title} - Episodes", type: "show_episode", count: episode_count}
+    ]
   end
 
-  defp section_value(%{"title" => title, "key" => key}) do
+  defp section_value(%{"title" => title, "key" => key, "type" => type}) do
     {:ok, count} = section_count(key)
-    [{title, count}]
+    [%{title: title, type: type, count: count}]
   end
 
   @spec section_count(String.t(), map()) :: {:ok, non_neg_integer() | nil}
-  def section_count(section_id, params \\ %{}) do
+  defp section_count(section_id, params \\ %{}) do
     with {:ok, response} <- Plex.Library.section(section_id, params: params, offset: 0, limit: 0),
          {:ok, [count]} <- Map.fetch(response.headers, "x-plex-container-total-size") do
       {:ok, String.to_integer(count)}

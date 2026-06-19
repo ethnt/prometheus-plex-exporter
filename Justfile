@@ -9,3 +9,6 @@ test:
 
 dialyzer:
     mix dialyzer
+
+format:
+    treefmt
