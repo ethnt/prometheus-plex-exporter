@@ -26,6 +26,7 @@ defmodule PlexExporter.Plex.Client do
 
     case response do
       {:ok, %Req.Response{status: 200}} -> response
+      {:ok, %Req.Response{status: 403}} -> {:error, :unauthorized}
       {:ok, %Req.Response{status: 404}} -> {:error, :not_found}
       {:error, _} -> response
     end
@@ -33,7 +34,11 @@ defmodule PlexExporter.Plex.Client do
 
   @spec request(opts()) :: Req.Request.t()
   defp request(opts) do
-    Req.new(base_url: "#{Application.fetch_env!(:plex_exporter, :plex_url)}")
+    [
+      base_url: "#{Application.fetch_env!(:plex_exporter, :plex_url)}"
+    ]
+    |> Keyword.merge(Application.get_env(:plex_exporter, :client_options, []))
+    |> Req.new()
     |> Req.Request.put_new_header("Accept", "application/json")
     |> Req.Request.put_new_header(
       "X-Plex-Token",
