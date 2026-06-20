@@ -12,7 +12,7 @@ defmodule PlexExporter.Application do
   end
 
   defp children do
-    case Mix.env() do
+    case Application.get_env(:plex_exporter, :env) do
       :test ->
         []
 
