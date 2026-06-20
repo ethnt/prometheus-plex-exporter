@@ -17,7 +17,7 @@
       imports = with inputs; [ treefmt.flakeModule ];
 
       perSystem = { config, lib, pkgs, ... }: {
-        packages.default = pkgs.callPackage ./default.nix { };
+        packages.default = pkgs.callPackage ./nix/package.nix { };
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs;
