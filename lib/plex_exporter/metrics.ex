@@ -1,45 +1,25 @@
 defmodule PlexExporter.Metrics do
-  use Prometheus.Metric
+  @moduledoc """
+  Prometheus gauges and metrics
+  """
 
-  alias PlexExporter.Data
+  alias PlexExporter.Metrics
 
-  def setup do
-    Gauge.declare(
-      name: :plex_total_sessions,
-      labels: [:type],
-      help: "Number of active Plex sessions"
-    )
+  @metrics [
+    Metrics.PlexTotalSessions,
+    Metrics.PlexLibraryItems
+  ]
 
-    Gauge.declare(
-      name: :plex_library_items,
-      labels: [:name],
-      help: "Number of Plex library items"
-    )
+  def init do
+    Enum.each(@metrics, fn metric -> metric.init() end)
   end
 
-  def update_metrics! do
-    update_plex_total_sessions!()
-    update_plex_library_items!()
-  end
-
-  def update_plex_total_sessions! do
-    case Data.Sessions.count() do
-      :error ->
-        :ok
-
-      {:ok, counts} ->
-        Enum.each(counts, fn {type, count} ->
-          Gauge.set([name: :plex_total_sessions, labels: [type]], count)
-        end)
-    end
-  end
-
-  def update_plex_library_items! do
-    case Data.Media.count() do
-      {:ok, counts} ->
-        Enum.each(counts, fn {library, count} ->
-          Gauge.set([name: :plex_library_items, labels: [library]], count)
-        end)
-    end
+  def update do
+    Enum.reduce_while(@metrics, :ok, fn metric, _acc ->
+      case metric.update() do
+        {:error, reason} when reason in [:unauthorized, :forbidden] -> {:halt, {:error, reason}}
+        _ -> {:cont, :ok}
+      end
+    end)
   end
 end

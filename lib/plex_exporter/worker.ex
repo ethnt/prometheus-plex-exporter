@@ -5,22 +5,30 @@ defmodule PlexExporter.Worker do
 
   use GenServer
 
-  @poll_interval :timer.seconds(10)
+  require Logger
+
+  @update_interval to_timeout(second: 10)
 
   def start_link(_), do: GenServer.start_link(PlexExporter.Worker, %{})
 
   def init(state) do
-    send(self(), :poll)
+    send(self(), :update)
     {:ok, state}
   end
 
-  def handle_info(:poll, state) do
-    PlexExporter.Metrics.update_metrics!()
-    schedule_poll()
+  def handle_info(:update, state) do
+    case PlexExporter.Metrics.update() do
+      {:error, reason} when reason in [:unauthorized, :forbidden] ->
+        Logger.error("Plex returned #{reason}, verify your Plex token. Polling has stopped.")
+
+      _ ->
+        schedule_update()
+    end
+
     {:noreply, state}
   end
 
-  defp schedule_poll do
-    Process.send_after(self(), :poll, @poll_interval)
+  defp schedule_update do
+    Process.send_after(self(), :update, @update_interval)
   end
 end

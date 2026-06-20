@@ -1,39 +1,63 @@
 defmodule PlexExporter.Plex.Client do
   @moduledoc """
-  Client for the Plex API
+  HTTP client for making requests to the Plex API
   """
 
-  @type opts :: [params: map(), offset: non_neg_integer(), limit: non_neg_integer(), plug: term()]
+  @typedoc """
+  Options to pass to the `Req.Request`
+  """
+  @type opts :: [params: map(), offset: non_neg_integer(), limit: non_neg_integer()]
+
+  @typedoc """
+  Response from `Req`
+  """
+  @type response ::
+          {:ok, Req.Response.t()}
+          | {:error, :not_found}
+          | {:error, :unauthorized}
+          | {:error, :forbidden}
+          | {:error, Exception.t()}
+
+  defguard is_auth_error(reason) when reason in [:unauthorized, :forbidden]
 
   @doc """
-  Make a GET request to the given Plex URL
+  Make a `GET` request to the Plex API
   """
-  @spec get(String.t(), opts()) :: {:ok, Req.Response.t()} | {:error, Exception.t()}
+  @spec get(String.t(), opts()) :: response()
   def get(path, opts \\ []) do
     {params, opts} = Keyword.pop(opts, :params, %{})
 
-    base_request(opts)
-    |> Req.get(url: path, params: params)
+    response =
+      opts
+      |> request()
+      |> Req.get(url: path, params: params)
+
+    case response do
+      {:ok, %Req.Response{status: 200}} -> response
+      {:ok, %Req.Response{status: 401}} -> {:error, :unauthorized}
+      {:ok, %Req.Response{status: 403}} -> {:error, :forbidden}
+      {:ok, %Req.Response{status: 404}} -> {:error, :not_found}
+      {:error, _} -> response
+    end
   end
 
-  @spec base_request(opts()) :: Req.Request.t()
-  defp base_request(opts) do
-    %PlexExporter.Config{url: url, token: token} = PlexExporter.config()
-
-    Req.new(base_url: url)
+  @spec request(opts()) :: Req.Request.t()
+  defp request(opts) do
+    [
+      base_url: "#{PlexExporter.Config.plex_url()}"
+    ]
+    |> Keyword.merge(Application.get_env(:plex_exporter, :client_options, []))
+    |> Req.new()
     |> Req.Request.put_new_header("Accept", "application/json")
-    |> Req.Request.put_new_header("X-Plex-Token", token)
-    |> apply_options(opts)
+    |> Req.Request.put_new_header(
+      "X-Plex-Token",
+      PlexExporter.Config.plex_token()
+    )
+    |> put_pagination_headers(opts)
   end
 
-  @spec apply_options(Req.Request.t(), opts()) :: Req.Request.t()
-  defp apply_options(request, opts) do
-    request =
-      case Keyword.fetch(opts, :plug) do
-        {:ok, plug} -> Req.merge(request, plug: plug)
-        :error -> request
-      end
-
+  @spec put_pagination_headers(Req.Request.t(), opts()) :: Req.Request.t()
+  defp put_pagination_headers(request, opts) do
     with {:ok, offset} <- Keyword.fetch(opts, :offset),
          {:ok, limit} <- Keyword.fetch(opts, :limit) do
       request
