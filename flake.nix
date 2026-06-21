@@ -1,5 +1,5 @@
 {
-  description = "prometheus-plex-exporter";
+  description = "plex_exporter";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -11,17 +11,34 @@
   };
 
   outputs = inputs@{ nixpkgs, flake-parts, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
+    flake-parts.lib.mkFlake { inherit inputs; } ({ self, ... }: {
       systems = nixpkgs.lib.systems.flakeExposed;
 
       imports = with inputs; [ treefmt.flakeModule ];
 
-      perSystem = { config, lib, pkgs, ... }: {
-        packages.default = pkgs.callPackage ./nix/package.nix { };
+      flake = {
+        overlays.default = final: _prev: {
+          plex-exporter =
+            self.packages.${final.stdenv.hostPlatform.system}.default;
+        };
+
+        nixosModules.plex-exporter = { ... }: {
+          imports = [ ./nix/nixos-module.nix ];
+        };
+      };
+
+      perSystem = { config, lib, pkgs, self', ... }: {
+        packages = {
+          default = pkgs.callPackage ./nix/packages/default.nix { };
+        } // lib.optionalAttrs pkgs.stdenv.isLinux {
+          docker = pkgs.callPackage ./nix/packages/docker.nix {
+            plex_exporter = self'.packages.default;
+          };
+        };
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs;
-            [ elixir_1_19 just ] ++ [ config.treefmt.build.wrapper ]
+            [ docker elixir_1_19 just ] ++ [ config.treefmt.build.wrapper ]
             ++ (builtins.attrValues config.treefmt.build.programs);
 
           shellHook = ''
@@ -45,6 +62,7 @@
               enable = true;
               package = pkgs.nixfmt-classic;
             };
+            prettier.enable = true;
           };
           settings.formatter = {
             elixir = {
@@ -55,5 +73,5 @@
           };
         };
       };
-    };
+    });
 }
