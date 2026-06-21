@@ -2,7 +2,6 @@ name: Docker
 
 on:
   push:
-    branches: [main]
     tags: ["v*"]
 
 permissions:
@@ -30,6 +29,10 @@ jobs:
             --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
             docker-archive:./result \
             docker://ghcr.io/${{ github.repository }}:latest-${{ matrix.arch }}
+          skopeo copy \
+            --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            docker-archive:./result \
+            docker://ghcr.io/${{ github.repository }}:${{ github.ref_name }}-${{ matrix.arch }}
 
   manifest:
     needs: build
@@ -43,3 +46,7 @@ jobs:
             --tag ghcr.io/${{ github.repository }}:latest \
             ghcr.io/${{ github.repository }}:latest-amd64 \
             ghcr.io/${{ github.repository }}:latest-arm64
+          docker buildx imagetools create \
+            --tag ghcr.io/${{ github.repository }}:${{ github.ref_name }} \
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}-amd64 \
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}-arm64
