@@ -3,6 +3,7 @@ defmodule PlexExporter.Metrics.Metric do
   Behaviour for an exposed metric, requiring `init/0` and `update/0` functions
   """
 
+  @callback mode :: :instant | :cached
   @callback init :: :ok | :error
   @callback update :: :ok | :error
 

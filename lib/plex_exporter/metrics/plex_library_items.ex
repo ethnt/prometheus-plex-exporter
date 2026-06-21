@@ -10,6 +10,9 @@ defmodule PlexExporter.Metrics.PlexLibraryItems do
   alias PlexExporter.Collectors
 
   @impl true
+  def mode, do: :cached
+
+  @impl true
   def init do
     Gauge.declare(
       name: :plex_library_items,

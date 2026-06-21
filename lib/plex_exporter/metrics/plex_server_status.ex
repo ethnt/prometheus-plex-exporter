@@ -10,6 +10,9 @@ defmodule PlexExporter.Metrics.PlexServer do
   alias PlexExporter.Collectors
 
   @impl true
+  def mode, do: :instant
+
+  @impl true
   def init do
     Gauge.declare(
       name: :plex_server_status,

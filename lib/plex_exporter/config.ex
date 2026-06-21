@@ -55,7 +55,7 @@ defmodule PlexExporter.Config do
 
   @spec exit!(String.t()) :: no_return()
   defp exit!(message) do
-    Logger.error(message)
+    Logger.error("[Config] #{message}")
     System.stop(1)
     Process.sleep(:infinity)
   end
