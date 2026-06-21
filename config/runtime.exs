@@ -1,7 +1,16 @@
 import Config
 
 if config_env() != :test do
-  config :logger, :default_handler, formatter: LoggerJSON.Formatters.Basic.new()
+  log_level = "LOG_LEVEL" |> System.get_env("info") |> String.to_existing_atom()
+
+  formatter =
+    case System.get_env("LOG_FORMAT", "console") do
+      "json" -> LoggerJSON.Formatters.Basic.new()
+      _ -> Logger.Formatter.new()
+    end
+
+  config :logger, :default_handler, formatter: formatter
+  config :logger, level: log_level
 
   config :plex_exporter,
     plex_url: System.get_env("PLEX_URL"),
