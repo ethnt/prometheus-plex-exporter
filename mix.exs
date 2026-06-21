@@ -4,7 +4,7 @@ defmodule PrometheusPlexExporter.MixProject do
   def project do
     [
       app: :plex_exporter,
-      version: "0.1.0",
+      version: "0.0.1",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -29,7 +29,7 @@ defmodule PrometheusPlexExporter.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:logger_json, "~> 7.0.4"},
       {:mimic, "~> 2.3.0", only: [:test]},
-      {:prometheus_plugs, git: "https://github.com/TBK145/prometheus-plugs.git", ref: "patch-1"},
+      {:prometheus_plugs, git: "https://github.com/ethnt/prometheus-plugs.git", ref: "36e7dc7"},
       {:req, "~> 0.5.0"},
       {:styler, "~> 1.11", only: [:dev, :test], runtime: false}
     ]
