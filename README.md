@@ -76,6 +76,9 @@ And then include and use the NixOS module:
 ## Metrics
 
 ```
+# TYPE plex_server_status gauge
+# HELP plex_server_status Plex server status
+plex_server_status{name="Your Plex Server"} 1
 # TYPE plex_library_items gauge
 # HELP plex_library_items Number of Plex library items
 plex_library_items{title="TV Shows",type="show"} 467
