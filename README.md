@@ -17,9 +17,9 @@ services:
       PLEX_URL: http://plex:32400
       PLEX_TOKEN: your-token-here # or...
       PLEX_TOKEN_FILE: /var/lib/plex_exporter/token
+      # PORT: 9000
     volumes:
       - /var/lib/plex_exporter/token
-      # PORT: 9000
 ```
 
 ### Nix

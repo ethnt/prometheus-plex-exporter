@@ -9,7 +9,7 @@ in beamPackages.mixRelease rec {
 
   mixFodDeps = beamPackages.fetchMixDeps {
     inherit pname version src mixEnv;
-    hash = "sha256-dJUokAlVD1z2LDS1L+xia+bsp5ADv3po9pAcSGxcQiM=";
+    hash = "sha256-kEcjk2a+BUhRuyx3UgpXICxA1E2wn3IuRanowaSjzv4=";
   };
 
   removeCookie = false;

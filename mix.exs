@@ -26,6 +26,7 @@ defmodule PrometheusPlexExporter.MixProject do
   defp deps do
     [
       {:bandit, "~> 1.0"},
+      {:castore, "~> 1.0"},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:logger_json, "~> 7.0.4"},
       {:mimic, "~> 2.3.0", only: [:test]},
