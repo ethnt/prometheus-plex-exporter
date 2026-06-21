@@ -31,6 +31,18 @@ in {
       default = 9000;
     };
 
+    logLevel = mkOption {
+      type = types.enum [ "debug" "info" "warning" "error" ];
+      description = "The log level for the exporter";
+      default = "info";
+    };
+
+    logFormat = mkOption {
+      type = types.enum [ "console" "json" ];
+      description = "The log format for the exporter";
+      default = "console";
+    };
+
     openFirewall = mkOption {
       type = types.bool;
       description = "If the firewall should allow requests to the exporter";
@@ -48,6 +60,8 @@ in {
         PLEX_URL = cfg.url;
         PLEX_TOKEN_FILE = cfg.tokenFile;
         PORT = toString cfg.port;
+        LOG_LEVEL = cfg.logLevel;
+        LOG_FORMAT = cfg.logFormat;
       };
 
       serviceConfig = {
