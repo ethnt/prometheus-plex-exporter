@@ -7,7 +7,8 @@ defmodule PlexExporter.Metrics do
 
   @metrics [
     Metrics.PlexTotalSessions,
-    Metrics.PlexLibraryItems
+    Metrics.PlexLibraryItems,
+    Metrics.PlexServer
   ]
 
   def init do
