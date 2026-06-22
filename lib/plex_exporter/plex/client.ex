@@ -3,6 +3,8 @@ defmodule PlexExporter.Plex.Client do
   HTTP client for making requests to the Plex API
   """
 
+  require Logger
+
   @typedoc """
   Options to pass to the `Req.Request`
   """

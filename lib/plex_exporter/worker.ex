@@ -1,13 +1,11 @@
 defmodule PlexExporter.Worker do
   @moduledoc """
-  Polls the API to update the metrics
+  Polls the API to update cached metrics
   """
 
   use GenServer
 
   require Logger
-
-  @update_interval to_timeout(second: 10)
 
   def start_link(_), do: GenServer.start_link(PlexExporter.Worker, %{})
 
@@ -17,9 +15,11 @@ defmodule PlexExporter.Worker do
   end
 
   def handle_info(:update, state) do
-    case PlexExporter.Metrics.update() do
+    Logger.debug("[Worker] Updating cached metrics")
+
+    case PlexExporter.Metrics.update(:cached) do
       {:error, reason} when reason in [:unauthorized, :forbidden] ->
-        Logger.error("Plex returned #{reason}, verify your Plex token.")
+        Logger.error("[Worker] Plex returned #{reason}, verify your Plex token.")
 
       _ ->
         :ok
@@ -30,6 +30,10 @@ defmodule PlexExporter.Worker do
   end
 
   defp schedule_update do
-    Process.send_after(self(), :update, @update_interval)
+    Process.send_after(self(), :update, update_interval())
+  end
+
+  defp update_interval do
+    to_timeout(second: String.to_integer(Application.get_env(:plex_exporter, :metrics_refresh_interval)))
   end
 end

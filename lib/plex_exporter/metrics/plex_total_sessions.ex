@@ -10,6 +10,9 @@ defmodule PlexExporter.Metrics.PlexTotalSessions do
   alias PlexExporter.Collectors
 
   @impl true
+  def mode, do: :instant
+
+  @impl true
   def init do
     Gauge.declare(
       name: :plex_total_sessions,
